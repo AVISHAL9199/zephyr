@@ -1,0 +1,52 @@
+name: Proof of Vulnerability
+
+on:
+  pull_request_target:
+    branches: [ main ]
+
+jobs:
+  demonstrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR code (VULNERABLE WAY)
+        uses: actions/checkout@v3
+        # This checks out UNTRUSTED PR code - that's the vulnerability!
+      
+      - name: Show Security Issue
+        env:
+          # This token will be accessible to PR code!
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚨 SECURITY VULNERABILITY DEMONSTRATION 🚨"
+          echo "==========================================="
+          echo ""
+          echo "This script is running from UNTRUSTED PR code!"
+          echo ""
+          
+          # 1. Show we have access to the token
+          if [ -n "$GITHUB_TOKEN" ]; then
+            echo "✅ CRITICAL: Can access GITHUB_TOKEN!"
+            echo "   Token length: ${#GITHUB_TOKEN} characters"
+            echo "   First few chars: ${GITHUB_TOKEN:0:10}..."
+            echo ""
+            echo "🔴 REAL ATTACK SCENARIO:"
+            echo "   An attacker could:"
+            echo "   1. Send this token to their server"
+            echo "   2. Use it to push malicious code to this repo"
+            echo "   3. Access or modify sensitive files"
+            echo "   4. Steal other secrets"
+          else
+            echo "❌ GITHUB_TOKEN not found"
+          fi
+          
+          echo ""
+          echo "==========================================="
+          echo "VULNERABLE PATTERN:"
+          echo "1. Uses 'pull_request_target' event"
+          echo "2. Checks out PR code (not base ref)"
+          echo "3. Runs commands with GITHUB_TOKEN access"
+          echo ""
+          echo "SAFE ALTERNATIVE:"
+          echo "1. Use 'pull_request' instead of 'pull_request_target'"
+          echo "2. OR add: ref: \${{ github.event.pull_request.base.ref }}"
+          echo "==========================================="
